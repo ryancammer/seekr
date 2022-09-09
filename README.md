@@ -19,11 +19,14 @@ seekr requires:
 - [node.js](https://nodejs.org/)
 - [npm](https://www.npmjs.com/)
 - [typescript](https://www.typescriptlang.org/)
+- [yarn](https://yarnpkg.com/)
 
 ## Installation
 
+From the root of the project, run:
+
 ```bash
-npm install seekr
+yarn
 ```
 
 ## Usage
