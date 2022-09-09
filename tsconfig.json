@@ -35,5 +35,9 @@
   "exclude": [
     "node_modules",
     "**/*.test.ts"
-  ]
+  ],
+  "types": {
+    "main": "dist/tsc/src/index.js",
+    "types": "dist/tsc/src/index.d.ts"
+  }
 }

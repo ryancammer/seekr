@@ -7,6 +7,9 @@ dictionary.txt
 # will have their own domains.
 interesting_domains.txt
 
+# This is the file that contains words to ignore
+excluded_words.txt
+
 # Logs
 logs
 *.log

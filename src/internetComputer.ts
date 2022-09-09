@@ -10,7 +10,7 @@ export class InternetComputer {
 
   public static readonly DefaultLimit = 100
 
-  public static readonly DefaultSimultaneousRequestsPerSecond = 10
+  public static readonly DefaultSimultaneousRequestsPerSecond = 5
 
   public static readonly DefaultMaximumNumberOfPages = 1000000
 

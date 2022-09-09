@@ -1,36 +1,46 @@
 export class CrawlableLink {
-  private readonly url: string
+  private readonly url: URL
+
+  readonly NullURL = new URL('https://null')
 
   constructor(url: string) {
-    this.url = url
+    try {
+      this.url = new URL(url)
+    } catch (e) {
+      this.url = this.NullURL
+    }
   }
 
   private isImage() {
     const regex =
       '^(?:(?<scheme>[^:\\/?#]+):)?(?:\\/\\/(?<authority>[^\\/?#]*))?(?<path>[^?#]*\\/)?(?<file>[^?#]*\\.(?<extension>[Jj][Pp][Ee]?[Gg]|[Pp][Nn][Gg]|[Gg][Ii][Ff]))(?:\\?(?<query>[^#]*))?(?:#(?<fragment>.*))?$'
 
-    const match = this.url.match(regex)
+    const match = this.url.toString().match(regex)
 
     return match?.groups?.extension !== undefined
   }
 
   private isMailto() {
-    return this.url.startsWith('mailto:')
+    return this.url.protocol.startsWith('mailto:')
   }
 
   private isTel() {
-    return this.url.startsWith('tel:')
-  }
-
-  private isInternal() {
-    return this.url.startsWith('/')
+    return this.url.protocol.startsWith('tel:')
   }
 
   private isHttp() {
-    return this.url.startsWith('http://') || this.url.startsWith('https://')
+    return this.url.protocol == 'http:' || this.url.protocol == 'https:'
+  }
+
+  private isPdf() {
+    return new URL(this.url).pathname.endsWith('.pdf')
   }
 
   get isCrawlable() {
+    if (this.url == this.NullURL) {
+      return false
+    }
+
     if (this.isImage()) {
       return false
     }
@@ -43,7 +53,7 @@ export class CrawlableLink {
       return false
     }
 
-    if (this.isInternal()) {
+    if (this.isPdf()) {
       return false
     }
 

@@ -35,6 +35,11 @@ export class Seekr {
         'dictionary.txt'
       )
       .option(
+        '-x, --excluded-words-file',
+        'The file with a list of words to exclude from the dictionary',
+        'excluded_words.txt'
+      )
+      .option(
         '-s, --source',
         'The source of pages to seek',
         'internet-computer'

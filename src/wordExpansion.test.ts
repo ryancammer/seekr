@@ -6,7 +6,7 @@ describe('WordExpansion', () => {
   describe('expand', () => {
     test('expands a word', () => {
       const word = 'at'
-      const expanded = new WordExpansion().expand(word)
+      const expanded = new WordExpansion(1).expand(word)
       expect(expanded.length).toEqual(180)
 
       expect(expanded).toContain('a')

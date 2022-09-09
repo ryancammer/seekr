@@ -7,8 +7,9 @@ const async = require('async')
 // matches what's in the dictionary. If it does, it outputs the
 // url and the matching content.
 export class Crawler {
-  static readonly DefaultSimultaneousRequests = 10
+  static readonly DefaultSimultaneousRequests = 20
   static readonly DefaultRequestTimeout = 10000
+  static readonly DefaultMinimumWordLength = 3
 
   private dictionary: Set<string>
   private counter: number
@@ -22,6 +23,7 @@ export class Crawler {
   private finished: boolean
   private crawledUrls: Set<string>
   private interestingDomains: Set<string>
+  private minimumWordLength: number
 
   /**
    * Initializes a new instance of the Crawler class.
@@ -41,7 +43,8 @@ export class Crawler {
     simultaneousRequests = Crawler.DefaultSimultaneousRequests,
     requestTimeout = Crawler.DefaultRequestTimeout,
     interestingDomains: Iterable<string> = [],
-    crawledUrls: Iterable<string> = []
+    crawledUrls: Iterable<string> = [],
+    minimumWordLength = Crawler.DefaultMinimumWordLength
   ) {
     this.output = output
     this.dictionary = new Set<string>(dictionary)
@@ -54,6 +57,7 @@ export class Crawler {
     this.finished = false
     this.crawledUrls = new Set<string>(crawledUrls)
     this.interestingDomains = new Set<string>(interestingDomains)
+    this.minimumWordLength = minimumWordLength
   }
 
   get isFinished() {
@@ -88,20 +92,6 @@ export class Crawler {
       await this.close()
     })
   }
-
-  private analyzeLinks(links: string[]) {
-    links.forEach((link: string) => {
-      const crawlableLink = new CrawlableLink(link)
-
-      if (
-        crawlableLink.isCrawlable &&
-        this.interestingDomains.has(crawlableLink.hostname)
-      ) {
-        this.enqueueCrawl(crawlableLink.crawlableUrl)
-      }
-    })
-  }
-
   /**
    * Performs a crawl for the given url.
    * @param url
@@ -148,15 +138,35 @@ export class Crawler {
 
       const content = await page.content()
 
-      const words = content.split(' ').map((word: string) => word.toLowerCase())
+      const words = content
+        .split(' ')
+        .map((word: string) => word.toLowerCase())
+        .filter((word: string) => word.length > this.minimumWordLength)
 
-      const hrefs = await page.$$eval('a', (as: any) =>
+      // TODO: All of this href stuff definitely needs a class.
+      // REFACTOR start
+      const hrefsFromPage = await page.$$eval('a', (as: any) =>
         as.map((a: any) => a.href)
       )
 
+      const hrefs = Array.from(new Set<string>(hrefsFromPage))
+
       let found = new Set<string>()
 
-      this.analyzeLinks(hrefs)
+      const validLinks: Array<string> = hrefs
+        .map((link: string) => new CrawlableLink(link))
+        .filter((link: CrawlableLink) => {
+          link.isCrawlable
+        })
+        .map((link: CrawlableLink) => link.crawlableUrl)
+
+      validLinks
+        .filter((link: string) => {
+          this.interestingDomains.has(new CrawlableLink(link).hostname)
+        })
+        .forEach(this.enqueueCrawl)
+
+      // REFACTOR end
 
       words.forEach((word: string) => {
         if (this.dictionary.has(word)) {
@@ -169,8 +179,9 @@ export class Crawler {
           found: true,
           url: url,
           matches: Array.from(found),
-          links: hrefs
+          links: validLinks
         }
+
         this.output(result)
       } else {
         result = { found: false, url: url, words: '' }
