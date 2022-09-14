@@ -15,3 +15,7 @@ package-lock.json
 /tmp*
 /mnt/
 /package/
+
+dictionary.txt
+excluded_words.txt
+interesting_domains.txt
