@@ -45,6 +45,14 @@ google.com
 wikipedia.org
 ```
 
+If you want to exclude certain words from triggering a result, create a `excluded_words.txt` file
+and add the words to it:
+
+```text
+pizza
+salt
+```
+
 Links in the `interesting_domains.txt` file should be in the format `domain.com` or `subdomain.domain.com`.
 Any links found in the crawl that are in the `interesting_domains.txt` file will be searched as well.
 
