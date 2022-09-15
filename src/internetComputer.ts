@@ -17,6 +17,7 @@ export class InternetComputer {
   private readonly baseUrl: string
   private readonly limit: number
   private readonly simultaneousRequestsPerSecond: number
+  private totalCanisters: number
 
   /**
    * Initializes a new instance of the InternetComputer class.
@@ -29,10 +30,20 @@ export class InternetComputer {
     this.baseUrl = baseUrl
     this.limit = limit
     this.simultaneousRequestsPerSecond = simultaneousRequestsPerSecond
+    this.totalCanisters = 0
 
     axiosThrottle.use(axios, {
       requestsPerSecond: this.simultaneousRequestsPerSecond
     })
+  }
+
+  async totalNumberOfCanisters() {
+    if (this.totalCanisters === 0) {
+      const page = await axios.get(`${this.baseUrl}?limit=0`)
+      this.totalCanisters = page.data.total_canisters
+    }
+
+    return this.totalCanisters
   }
 
   /**
@@ -50,8 +61,9 @@ export class InternetComputer {
   }
 
   async getTotalPages() {
-    const startingPage = await axios.get(`${this.baseUrl}?limit=0`)
-    return Math.ceil(startingPage.data.total_canisters / this.limit)
+    const totalCanisters = await this.totalNumberOfCanisters()
+
+    return Math.ceil(totalCanisters / this.limit)
   }
 
   /**
