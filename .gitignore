@@ -125,3 +125,6 @@ dist
 .idea/*
 
 .DS_Store
+
+# The app takes screenshots if a flag is selected, so we want do not check these in
+screenshots/*

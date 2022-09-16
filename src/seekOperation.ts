@@ -74,6 +74,7 @@ export class SeekOperation {
     this.crawler = new Crawler(
       dictionary,
       this.options.debug,
+      this.options.pictures,
       resultCallback,
       Crawler.DefaultSimultaneousRequests,
       Crawler.DefaultRequestTimeout,

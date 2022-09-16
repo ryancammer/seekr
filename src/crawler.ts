@@ -1,9 +1,10 @@
 import puppeteer, { Browser } from 'puppeteer'
 import { CrawlableLink } from './crawlableLink'
+import * as fs from 'fs'
 const async = require('async')
 
 // The Crawler crawls for content using Puppeteer to load urls into
-// a DOM, and then searches the DOM's content to see if any of it
+// a DOM, and then searches the DOM 's content to see if any of it
 // matches what's in the dictionary. If it does, it outputs the
 // url and the matching content.
 export class Crawler {
@@ -11,6 +12,8 @@ export class Crawler {
   static readonly DefaultRequestTimeout = 10000
   static readonly DefaultMinimumWordLength = 3
   static readonly DefaultItemsToProcessBeforeLogging = 100
+  static readonly DefaultTakeScreenshots = false
+  static readonly DefaultScreenshotPath = './screenshots'
 
   private dictionary: Set<string>
   private counter: number
@@ -27,12 +30,15 @@ export class Crawler {
   private readonly minimumWordLength: number
   private numberAdded: number
   private readonly itemsToProcessBeforeLogging: number
+  private readonly takeScreenshots: boolean
+  private readonly screenshotPath: string
 
   /**
    * Initializes a new instance of the Crawler class.
    * @constructor
    * @param {Set<string>} dictionary - The dictionary of content to search for.
    * @param {boolean} debug - True to enable debug logging.
+   * @param takeScreenshots - True to take screenshots of pages that contain content from the dictionary.
    * @param output - The output function to use. Defaults to console.log
    * @param simultaneousRequests - The number of simultaneous requests to make.
    * @param requestTimeout - The timeout for each request.
@@ -40,17 +46,20 @@ export class Crawler {
    * @param crawledUrls - The urls that have already been crawled.
    * @param minimumWordLength - The minimum length of words to search for.
    * @param itemsToProcessBeforeLogging - The number of items to process before logging, if logging is enabled
+   * @param screenshotPath - The path to save screenshots to.
    */
   constructor(
     dictionary: Iterable<string>,
     debug = false,
+    takeScreenshots = Crawler.DefaultTakeScreenshots,
     output: any = console.log,
     simultaneousRequests = Crawler.DefaultSimultaneousRequests,
     requestTimeout = Crawler.DefaultRequestTimeout,
     interestingDomains: Iterable<string> = [],
     crawledUrls: Iterable<string> = [],
     minimumWordLength = Crawler.DefaultMinimumWordLength,
-    itemsToProcessBeforeLogging = Crawler.DefaultItemsToProcessBeforeLogging
+    itemsToProcessBeforeLogging = Crawler.DefaultItemsToProcessBeforeLogging,
+    screenshotPath = Crawler.DefaultScreenshotPath
   ) {
     this.output = output
     this.dictionary = new Set<string>(dictionary)
@@ -66,10 +75,31 @@ export class Crawler {
     this.minimumWordLength = minimumWordLength
     this.numberAdded = 0
     this.itemsToProcessBeforeLogging = itemsToProcessBeforeLogging
+    this.takeScreenshots = takeScreenshots
+    this.screenshotPath = screenshotPath
   }
 
   get isFinished() {
     return this.finished
+  }
+
+  formatDate(date: Date) {
+    const padTo2Digits = (num: number) => {
+      return num.toString().padStart(2, '0')
+    }
+    return (
+      [
+        date.getFullYear(),
+        padTo2Digits(date.getMonth() + 1),
+        padTo2Digits(date.getDate())
+      ].join('-') +
+      '_' +
+      [
+        padTo2Digits(date.getHours()),
+        padTo2Digits(date.getMinutes()),
+        padTo2Digits(date.getSeconds())
+      ].join('')
+    )
   }
 
   /**
@@ -99,6 +129,12 @@ export class Crawler {
       }
       await this.close()
     })
+
+    if (this.takeScreenshots) {
+      if (!fs.existsSync(this.screenshotPath)) {
+        fs.mkdirSync(this.screenshotPath, 0o744)
+      }
+    }
   }
   /**
    * Performs a crawl for the given url.
@@ -197,6 +233,15 @@ export class Crawler {
           links: validLinks
         }
 
+        if (this.takeScreenshots) {
+          await page.screenshot({
+            path: `${this.screenshotPath}/${new URL(url).href
+              .replaceAll(':', '_')
+              .replaceAll('/', '_')
+              .replaceAll('.', '_')}_${this.formatDate(new Date())}.png`
+          })
+        }
+
         this.output(result)
       } else {
         result = { found: false, url: url, words: '' }
@@ -230,7 +275,7 @@ export class Crawler {
   }
 
   /**
-   * Adds a url to the queue to be crawled.
+   * Adds an url to the queue to be crawled.
    * @param url - The url to crawl.
    */
   enqueueCrawl(url: string) {

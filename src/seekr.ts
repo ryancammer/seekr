@@ -50,6 +50,11 @@ export class Seekr {
         'Whether to not expand the dictionary',
         false
       )
+      .option(
+        '-p, --pictures',
+        'Whether to take pictures of the canisters that are found to have one or more words',
+        false
+      )
       .action(async (options) => {
         await new SeekOperation(options).perform()
       })
