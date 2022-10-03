@@ -1,6 +1,8 @@
 import puppeteer, { Browser } from 'puppeteer'
 import { CrawlableLink } from './crawlableLink'
 import * as fs from 'fs'
+import { ContentFinder } from './contentFinder'
+import { DomainFinder } from './domainFinder'
 const async = require('async')
 
 // The Crawler crawls for content using Puppeteer to load urls into
@@ -15,7 +17,6 @@ export class Crawler {
   static readonly DefaultTakeScreenshots = false
   static readonly DefaultScreenshotPath = './screenshots'
 
-  private dictionary: Set<string>
   private counter: number
   private readonly startTime: number
   private readonly simultaneousRequests: number
@@ -24,14 +25,15 @@ export class Crawler {
   private browser: Browser | null
   private urlQueue: any
   private readonly output: any
-  private finished: boolean
   private crawledUrls: Set<string>
+  private itemsAddedToTheQueue: Set<string> = new Set<string>()
   private interestingDomains: Set<string>
   private readonly minimumWordLength: number
   private numberAdded: number
   private readonly itemsToProcessBeforeLogging: number
   private readonly takeScreenshots: boolean
   private readonly screenshotPath: string
+  private contentFinder: ContentFinder
 
   /**
    * Initializes a new instance of the Crawler class.
@@ -62,14 +64,13 @@ export class Crawler {
     screenshotPath = Crawler.DefaultScreenshotPath
   ) {
     this.output = output
-    this.dictionary = new Set<string>(dictionary)
+    this.contentFinder = new ContentFinder(new Set<string>(dictionary))
     this.counter = 0
     this.startTime = performance.now()
     this.simultaneousRequests = simultaneousRequests
     this.requestTimeout = requestTimeout
     this.debug = debug
     this.browser = null
-    this.finished = false
     this.crawledUrls = new Set<string>(crawledUrls)
     this.interestingDomains = new Set<string>(interestingDomains)
     this.minimumWordLength = minimumWordLength
@@ -77,10 +78,6 @@ export class Crawler {
     this.itemsToProcessBeforeLogging = itemsToProcessBeforeLogging
     this.takeScreenshots = takeScreenshots
     this.screenshotPath = screenshotPath
-  }
-
-  get isFinished() {
-    return this.finished
   }
 
   formatDate(date: Date) {
@@ -121,14 +118,7 @@ export class Crawler {
       await self.performCrawl(task, callback)
     }, this.simultaneousRequests)
 
-    this.urlQueue.drain(async () => {
-      this.finished = true
-
-      if (this.debug) {
-        this.output('Queue drained')
-      }
-      await this.close()
-    })
+    this.urlQueue.drain(async () => {})
 
     if (this.takeScreenshots) {
       if (!fs.existsSync(this.screenshotPath)) {
@@ -160,11 +150,9 @@ export class Crawler {
         `Processed ${this.counter} pages in ${(
           (performance.now() - this.startTime) /
           1000
-        ).toFixed(2)} s. Percent complete: ${(
-          this.counter / this.numberAdded
         ).toFixed(
           2
-        )}. Total urls in queue: ${this.urlQueue.length()}, total added: ${
+        )} s. Total urls in queue: ${this.urlQueue.length()}, total added: ${
           this.numberAdded
         }`
       )
@@ -187,9 +175,9 @@ export class Crawler {
         waitUntil: 'domcontentloaded'
       })
 
-      const content = await page.content()
+      const content = await page.$eval('html', (el) => el.textContent)
 
-      const words = content
+      const words = (content || '')
         .split(' ')
         .map((word: string) => word.toLowerCase())
         .filter((word: string) => word.length > this.minimumWordLength)
@@ -202,34 +190,34 @@ export class Crawler {
 
       const hrefs = Array.from(new Set<string>(hrefsFromPage))
 
-      let found = new Set<string>()
+      const validLinks = Array.from(
+        new Set<string>(
+          CrawlableLink.crawlableLinks(hrefs).map(
+            (interestingLink) => interestingLink.crawlableUrl
+          )
+        )
+      )
 
-      const validLinks: Array<string> = hrefs
-        .map((link: string) => new CrawlableLink(link))
-        .filter((link: CrawlableLink) => {
-          link.isCrawlable
-        })
-        .map((link: CrawlableLink) => link.crawlableUrl)
+      validLinks.forEach((link) => {
+        const domains = new DomainFinder(link).domains
 
-      validLinks
-        .filter((link: string) => {
-          this.interestingDomains.has(new CrawlableLink(link).hostname)
-        })
-        .forEach(this.enqueueCrawl)
+        const hasInterestingDomain = domains.some((domain) =>
+          this.interestingDomains.has(domain)
+        )
 
-      // REFACTOR end
-
-      words.forEach((word: string) => {
-        if (this.dictionary.has(word)) {
-          found.add(word)
+        if (hasInterestingDomain) {
+          this.enqueueCrawl(link)
         }
       })
 
-      if (found.size > 0) {
+      // REFACTOR end
+      const found = this.contentFinder.findContent(words)
+
+      if (found.length > 0) {
         result = {
           found: true,
           url: url,
-          matches: Array.from(found),
+          matches: found,
           links: validLinks
         }
 
@@ -279,7 +267,13 @@ export class Crawler {
    * @param url - The url to crawl.
    */
   enqueueCrawl(url: string) {
+    if (this.itemsAddedToTheQueue.has(url)) {
+      return
+    }
+
     this.urlQueue.push(url)
     this.numberAdded++
+
+    this.itemsAddedToTheQueue.add(url)
   }
 }

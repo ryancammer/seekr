@@ -1,10 +1,9 @@
 import { describe, expect, test } from '@jest/globals'
-
-import { CrawlableLink } from './crawlableLink'
+import { CrawlableLink } from '../../src'
 
 describe('CrawlableLink', () => {
-  describe('isCrawlable', () => {
-    describe('when the link is an image', function () {
+  describe('#isCrawlable', () => {
+    describe('when the link is an image', () => {
       test('is false for a jpg image', () => {
         const link =
           'https://2dpe2-6yaaa-aaaad-qaeia-cai.raw.ic0.app/img/gallery-img-01.jpg'
@@ -52,10 +51,37 @@ describe('CrawlableLink', () => {
     })
 
     describe('when the link is https', () => {
-      test('is true', () => {
+      test('is true for a # link', () => {
         const link = 'https://2dpe2-6yaaa-aaaad-qaeia-cai.raw.ic0.app/#infinite'
 
         expect(new CrawlableLink(link).isCrawlable).toBe(true)
+      })
+
+      test('is true for a link with no .extension', () => {
+        const link =
+          'https://h5aet-waaaa-aaaab-qaamq-cai.raw.ic0.app/p/theswordnft'
+
+        expect(new CrawlableLink(link).isCrawlable).toBe(true)
+        expect(new CrawlableLink(link).crawlableUrl).toBe(link)
+      })
+    })
+  })
+
+  describe('.crawlableLinks', () => {
+    describe('when there are crawlable links', () => {
+      test('is true', () => {
+        const links = [
+          'https://264ct-yqaaa-aaaad-qap3a-cai.raw.ic0.app/',
+          'https://264ct-yqaaa-aaaad-qap3a-cai.raw.ic0.app/loanPool',
+          'https://264ct-yqaaa-aaaad-qap3a-cai.raw.ic0.app/stake',
+          'https://264ct-yqaaa-aaaad-qap3a-cai.raw.ic0.app/governance'
+        ]
+
+        const crawlableLinks = CrawlableLink.crawlableLinks(links).map(
+          (link) => link.crawlableUrl
+        )
+
+        expect(crawlableLinks).toEqual(links)
       })
     })
   })

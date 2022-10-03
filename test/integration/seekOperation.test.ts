@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { SeekOperation } from '../../src/seekOperation'
+import { SeekOperation } from '../../src'
 
 describe('InternetComputer', () => {
   describe('perform', () => {

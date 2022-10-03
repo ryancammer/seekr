@@ -25,22 +25,27 @@ export class Seekr {
       .command('seek')
       .description('Seek canisters that contain words from the dictionary')
       .option(
-        '-i, --interesting-domains-file',
+        '-f, --fast-forward <fastForward>',
+        'Fast forward to the canister id that comes after the number or letter',
+        ''
+      )
+      .option(
+        '-i, --interesting-domains-file <interestingDomainsFile>',
         'The file with a list of interesting domains that should be crawled',
         'interesting_domains.txt'
       )
       .option(
-        '-w, --word-file',
+        '-w, --word-file <wordFile>',
         'The file with all of the words to seek',
         'dictionary.txt'
       )
       .option(
-        '-x, --excluded-words-file',
+        '-x, --excluded-words-file <excludedWordsFile>',
         'The file with a list of words to exclude from the dictionary',
         'excluded_words.txt'
       )
       .option(
-        '-s, --source',
+        '-s, --source <source>',
         'The source of pages to seek',
         'internet-computer'
       )

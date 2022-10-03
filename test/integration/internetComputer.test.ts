@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { InternetComputer } from '../../src/internetComputer'
+import { InternetComputer } from '../../src'
 
 describe('InternetComputer', () => {
   describe('getTotalPages', () => {

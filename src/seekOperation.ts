@@ -20,10 +20,6 @@ export class SeekOperation {
     this.crawler = null
   }
 
-  get isFinished() {
-    return this.crawler?.isFinished
-  }
-
   /**
    * Executes the Seek operation.
    * @returns {Promise<void>} A promise that resolves when the operation is complete.
@@ -82,7 +78,14 @@ export class SeekOperation {
     )
     await this.crawler.init()
 
-    const internetComputer = new InternetComputer()
+    const internetComputer = new InternetComputer(
+      InternetComputer.DefaultBaseUrl,
+      InternetComputer.DefaultLimit,
+      InternetComputer.DefaultSimultaneousRequestsPerSecond,
+      this.options.fastForward,
+      this.options.debug,
+      resultCallback
+    )
 
     await internetComputer.fetchAll(
       this.crawler.enqueueCrawl.bind(this.crawler),

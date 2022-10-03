@@ -1,5 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-import { Crawler } from '../../src/crawler'
+import { Crawler } from '../../src'
 
 describe('Crawler', () => {
   describe('enqueueCrawl', () => {
@@ -10,7 +10,8 @@ describe('Crawler', () => {
         results.push(result)
       }
 
-      const crawler = new Crawler(['dfinity'], false, resultCallback)
+      const crawler = new Crawler(['dfinity'], false, false, resultCallback)
+
       await crawler.init()
       crawler.enqueueCrawl('https://dfinity.org/')
 

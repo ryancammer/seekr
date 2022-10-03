@@ -1,8 +1,14 @@
+// A CrawlableLink is a link that can be crawled.
+// It is not an image, a mailto or a tel link.
 export class CrawlableLink {
   private readonly url: URL
 
   readonly NullURL = new URL('https://null')
 
+  /**
+   * Creates a new CrawlableLink.
+   * @param url - The url to check.
+   */
   constructor(url: string) {
     try {
       this.url = new URL(url)
@@ -36,6 +42,9 @@ export class CrawlableLink {
     return new URL(this.url).pathname.endsWith('.pdf')
   }
 
+  /**
+   * Returns true if the link is crawlable.
+   */
   get isCrawlable() {
     if (this.url == this.NullURL) {
       return false
@@ -60,11 +69,29 @@ export class CrawlableLink {
     return this.isHttp()
   }
 
+  /**
+   * Returns the url's hostname.
+   * @returns {string} The hostname.
+   */
   get hostname() {
     return new URL(this.url).hostname
   }
 
+  /**
+   * Returns the url.
+   */
   get crawlableUrl() {
     return new URL(this.url).toString()
+  }
+
+  /**
+   * Returns an array of urls that are crawlable from the links.
+   * @param links - The links to check.
+   * @returns {Array<CrawlableLink>} An array of crawlable urls.
+   */
+  static crawlableLinks(links: string[]): Array<CrawlableLink> {
+    return links
+      .map((link: string) => new CrawlableLink(link))
+      .filter((link: CrawlableLink) => link.isCrawlable)
   }
 }

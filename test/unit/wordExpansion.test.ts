@@ -1,6 +1,5 @@
 import { describe, expect, test } from '@jest/globals'
-
-import { WordExpansion } from './wordExpansion'
+import { WordExpansion } from '../../src'
 
 describe('WordExpansion', () => {
   describe('expand', () => {
