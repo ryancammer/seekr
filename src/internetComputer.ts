@@ -96,6 +96,9 @@ export class InternetComputer {
     return page.data.data
   }
 
+  /**
+   * Gets the total number of pages.
+   */
   async getTotalPages() {
     const totalCanisters = await this.totalNumberOfCanisters()
 

@@ -30,7 +30,17 @@ export class ContentFinder {
         continue
       }
 
-      currentWords.push(word)
+      currentWords.push(
+        word
+          .replaceAll(',', '')
+          .replaceAll('.', '')
+          .replaceAll(';', '')
+          .replaceAll(':', '')
+          .replaceAll('!', '')
+          .replaceAll('?', '')
+          .replaceAll('"', '')
+          .replaceAll("'", '')
+      )
 
       if (currentWords.length > this.MAX_PHRASE_LENGTH) {
         currentWords.shift()

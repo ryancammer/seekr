@@ -230,7 +230,17 @@ export class Crawler {
           })
         }
 
-        this.output(result)
+        const expression: RegExp = /\w{5}-\w{5}-\w{5}-\w{5}-\w{3}/
+
+        const canisterIdMatch = url.match(expression)
+
+        let canisterId = ''
+
+        if (canisterIdMatch) {
+          canisterId = canisterIdMatch[0]
+        }
+
+        this.output(`${canisterId},${url},${found.join('-')}`)
       } else {
         result = { found: false, url: url, words: '' }
       }

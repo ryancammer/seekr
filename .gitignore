@@ -128,3 +128,5 @@ dist
 
 # The app takes screenshots if a flag is selected, so we want do not check these in
 screenshots/*
+
+nohup.out
