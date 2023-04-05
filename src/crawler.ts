@@ -167,7 +167,7 @@ export class Crawler {
       })
     }
 
-    let page = await this.browser.newPage()
+    const page = await this.browser.newPage()
 
     try {
       await page.goto(url, {

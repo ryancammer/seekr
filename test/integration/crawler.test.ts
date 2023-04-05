@@ -3,7 +3,7 @@ import { Crawler } from '../../src'
 
 describe('Crawler', () => {
   describe('enqueueCrawl', () => {
-    test('expands a word', async () => {
+    test('crawls a site', async () => {
       let results = new Array<string>()
 
       let resultCallback = (result: any) => {
@@ -15,9 +15,9 @@ describe('Crawler', () => {
       await crawler.init()
       crawler.enqueueCrawl('https://dfinity.org/')
 
-      while (!crawler.isFinished) {
-        await new Promise((resolve) => setTimeout(resolve, 100))
-      }
+      await new Promise(f => setTimeout(f, 2000));
+
+      await crawler.close()
 
       expect(results.length).toEqual(1)
     })
