@@ -21,6 +21,8 @@ describe('InternetComputer', () => {
       await new Promise(f => setTimeout(f, 1000));
 
       expect(results).toEqual(['Initializing crawler'])
+
+      await seekOperation.close()
     })
   })
 })

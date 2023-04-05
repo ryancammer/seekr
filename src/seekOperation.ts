@@ -92,4 +92,10 @@ export class SeekOperation {
       breakAfter
     )
   }
+
+  async close() {
+    if (this.crawler) {
+      await this.crawler.close()
+    }
+  }
 }
